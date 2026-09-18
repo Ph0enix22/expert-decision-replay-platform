@@ -10,9 +10,13 @@ echo "Running Alembic migrations..."
 # Postgres actually is) and `shared_legacy` (reconciles the pre-existing
 # shared Neon DB's legacy tables; its own baseline is a deliberate no-op
 # and cannot bootstrap an empty database). The bare `head` keyword is
-# ambiguous between them, so Docker always targets `fresh_local`
-# explicitly — see alembic/versions/83f9966ec583_create_initial_schema.py.
-alembic upgrade fresh_local@head
+# ambiguous between them, so the target is explicit — see
+# alembic/versions/83f9966ec583_create_initial_schema.py. Defaults to
+# `fresh_local@head` for a brand-new empty Postgres (local Docker); set
+# ALEMBIC_TARGET=shared_legacy@head in the environment when running
+# against the pre-existing shared Neon database (e.g. Render, if it
+# reuses that DB) instead of duplicating this script per deploy target.
+alembic upgrade "${ALEMBIC_TARGET:-fresh_local@head}"
 
 echo "Seeding default roles (idempotent)..."
 python -m app.db.init_db
